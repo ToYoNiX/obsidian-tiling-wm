@@ -1,0 +1,135 @@
+/*------------------------------------------------------------------------------
+                        Tiling WM — Obsidian without chrome
+
+  Strips the window furniture a tiling window manager already provides or
+  actively fights: the titlebar, the close/minimise/maximise buttons, the
+  sidebar collapse arrows, and the tab bar. The window manager owns window
+  geometry; Obsidian should not draw a second set of controls for it.
+
+  No plugin required. Class names were read from Obsidian 1.13.7's own
+  stylesheet, not from a forum post — they are current.
+
+  PAIR THIS WITH ONE SETTING
+  Appearance → Window frame style → **Hidden**. That is built in, not a plugin.
+  With "Native" the window manager draws the decorations and this snippet only
+  removes Obsidian's inner chrome; with "Hidden" nothing draws them at all.
+
+  WHAT YOU LOSE, AND WHAT REPLACES IT
+  Every control removed here has a keybinding, which is the point — a tiling
+  setup is keyboard-driven anyway:
+
+      Ctrl+P      command palette (reaches everything below)
+      Ctrl+O      quick switcher — replaces clicking tabs
+      Ctrl+E      toggle edit/reading view
+      Ctrl+W      close tab            Ctrl+Tab  next tab
+      Command palette → "Toggle left sidebar" / "Toggle right sidebar"
+
+  Bind the two sidebar toggles to real keys in Settings → Hotkeys; without the
+  arrows they are otherwise only reachable through the palette.
+
+  DEFAULTS ARE SAFE WITHOUT STYLE SETTINGS
+  The toggles below add chrome *back* rather than removing it, so if the Style
+  Settings plugin is disabled or absent this snippet still behaves exactly as
+  intended. Nothing here depends on it.
+------------------------------------------------------------------------------*/
+
+/* @settings
+
+name: Tiling WM
+id: tiling-wm
+settings:
+    -
+        id: twm-tabs
+        title: Show the tab bar
+        description: Brings back the tab strip. Hidden by default — the quick switcher (Ctrl+O) does the same job without the vertical space.
+        type: class-toggle
+        default: false
+    -
+        id: twm-hide-ribbon
+        title: Hide the left ribbon
+        description: Removes the vertical icon strip on the far left. Everything on it is in the command palette.
+        type: class-toggle
+        default: false
+    -
+        id: twm-hide-status
+        title: Hide the status bar
+        description: Removes the bottom-right status bar (word count, sync, backlinks).
+        type: class-toggle
+        default: false
+
+*/
+
+/* =========================================================================
+   1. THE TITLEBAR AND ITS WINDOW BUTTONS
+   `.titlebar` is the whole strip; `.titlebar-button-container` holds the
+   close, minimise and maximise buttons. Removing the strip removes the drag
+   region too, which is correct here — a tiling WM does not drag windows.
+   ========================================================================= */
+body:not(.is-mobile) .titlebar {
+  display: none !important;
+}
+
+body:not(.is-mobile) :is(.titlebar-button-container,
+                         .titlebar-button,
+                         .titlebar-inner,
+                         .titlebar-text) {
+  display: none !important;
+}
+
+/* =========================================================================
+   2. THE SIDEBAR COLLAPSE ARROWS
+   The small chevrons that open and close the left and right sidebars. The
+   sidebars themselves are untouched — only the buttons go. Toggle them from
+   the command palette, or bind a hotkey.
+   ========================================================================= */
+body:not(.is-mobile) :is(.sidebar-toggle-button,
+                         .sidebar-toggle-button.mod-left,
+                         .sidebar-toggle-button.mod-right) {
+  display: none !important;
+}
+
+/* =========================================================================
+   3. THE TAB BAR
+   Hidden by default: in a tiling setup the WM already gives you window
+   switching, and Ctrl+O reaches any note faster than reading a tab strip.
+   The note's own inline title still tells you where you are.
+
+   Turn `twm-tabs` on in Style Settings to bring it back.
+   ========================================================================= */
+body:not(.is-mobile):not(.twm-tabs) .workspace-tab-header-container {
+  display: none !important;
+}
+
+/* The per-pane header — breadcrumbs, back/forward, the pane menu. Obsidian
+   hides this by default and shows it under `.show-view-header`; hide it in
+   both cases so enabling that setting elsewhere cannot bring it back. */
+body:not(.is-mobile) :is(.view-header,
+                         .view-header-nav-buttons) {
+  display: none !important;
+}
+
+/* =========================================================================
+   4. OPTIONAL — off unless you turn them on
+   ========================================================================= */
+body.twm-hide-ribbon:not(.is-mobile) .workspace-ribbon {
+  display: none !important;
+}
+
+body.twm-hide-status:not(.is-mobile) .status-bar {
+  display: none !important;
+}
+
+/* =========================================================================
+   5. RECLAIM THE SPACE
+   With the chrome gone the panes should start at the very top edge. Obsidian
+   reserves room for a titlebar in frameless mode via padding on the app
+   container; zero it, or the notes sit under a blank strip.
+   ========================================================================= */
+body:not(.is-mobile).is-frameless .app-container,
+body:not(.is-mobile).is-hidden-frameless .app-container {
+  padding-top: 0 !important;
+}
+
+body:not(.is-mobile) .workspace {
+  top: 0 !important;
+}
